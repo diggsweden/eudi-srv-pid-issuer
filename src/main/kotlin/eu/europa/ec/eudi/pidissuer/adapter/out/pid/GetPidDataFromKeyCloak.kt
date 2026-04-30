@@ -97,6 +97,7 @@ class GetPidDataFromKeyCloak(
         return keyCloakClient.getUserByUsername(username)
             ?.let { user ->
                 UserInfo(
+                    personalAdministrativeNumber = user.attributes["personal_administrative_number"]?.firstOrNull(),
                     familyName = user.lastName,
                     givenName = user.firstName,
                     birthFamilyName = user.attributes["birth_family_name"]?.firstOrNull(),
@@ -114,14 +115,16 @@ class GetPidDataFromKeyCloak(
             }
     }
 
-    private fun genPidMetaData(): PidMetaData {
+    private fun genPidMetaData(userInfo: UserInfo): PidMetaData {
         val (issuanceDate, expiryDate) = with(clock) {
             val now = now()
             now.toLocalDate() to (now + 100.days).toLocalDate()
         }
 
         return PidMetaData(
-            personalAdministrativeNumber = AdministrativeNumber(UUID.randomUUID().toString()),
+            personalAdministrativeNumber = AdministrativeNumber(
+                    userInfo.personalAdministrativeNumber ?: UUID.randomUUID().toString()
+            ),
             expiryDate = expiryDate,
             issuingAuthority = IssuingAuthority.AdministrativeAuthority("${issuerCountry.value} Administrative authority"),
             issuingCountry = issuerCountry,
@@ -173,13 +176,14 @@ class GetPidDataFromKeyCloak(
             mobilePhoneNumber = null,
         )
 
-        val pidMetaData = genPidMetaData()
+        val pidMetaData = genPidMetaData(userInfo)
 
         return pid to pidMetaData
     }
 }
 
 private data class UserInfo(
+    val personalAdministrativeNumber: String?,
     val familyName: String,
     val givenName: String,
     val birthFamilyName: String? = null,
