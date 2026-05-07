@@ -38,7 +38,7 @@ data class AdministrationClient(
     val admin: Credentials,
 )
 
-class KeycloakClient(
+class SpringKeycloakClient(
     val webClient: WebClient,
     val keyCloak: Url,
     val administrationClient: AdministrationClient,

@@ -401,7 +401,7 @@ fun beans(clock: Clock) = BeanRegistrarDsl {
     registerBean {
         val keycloakProperties = bean<KeycloakConfigurationProperties>()
         GetPidDataFromKeyCloak(
-            KeycloakClient(
+            SpringKeycloakClient(
                 webClient,
                 keyCloak = Url(keycloakProperties.serverUrl.toExternalForm()),
                 AdministrationClient(
