@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.days
 private val log = LoggerFactory.getLogger(GetPidDataFromKeyCloak::class.java)
 
 class GetPidDataFromKeyCloak(
-    private val keyCloakClient: SpringKeycloakClient,
+    private val keyCloakClient: KeycloakClient,
     private val issuerCountry: IsoCountry,
     private val issuingJurisdiction: IsoCountrySubdivision?,
     private val clock: Clock,

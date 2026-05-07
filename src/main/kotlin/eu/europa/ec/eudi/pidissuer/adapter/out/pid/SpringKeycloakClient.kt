@@ -9,9 +9,6 @@ import io.ktor.http.takeFrom
 import io.ktor.http.toURI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Required
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
@@ -43,14 +40,14 @@ class SpringKeycloakClient(
     val keyCloak: Url,
     val administrationClient: AdministrationClient,
     val users: Realm
-) {
+) : KeycloakClient {
 
     /**
      * Fetches the details of a user.
      *
      * @param username The username of the user the details of whose to fetch
      */
-    suspend fun getUserByUsername(username: String): UserRepresentation? {
+    override suspend fun getUserByUsername(username: String): UserRepresentation? {
         val accessToken = getAdminAccessToken()
         val url = URLBuilder()
             .takeFrom(keyCloak)
@@ -109,13 +106,3 @@ class SpringKeycloakClient(
         }
     }
 }
-
-@Serializable
-@JsonIgnoreUnknownKeys
-data class UserRepresentation(
-    @Required val username: String,
-    @Required val lastName: String,
-    @Required val firstName: String,
-    val attributes: Map<String, List<String>> = emptyMap(),
-    val email: String? = null,
-)
