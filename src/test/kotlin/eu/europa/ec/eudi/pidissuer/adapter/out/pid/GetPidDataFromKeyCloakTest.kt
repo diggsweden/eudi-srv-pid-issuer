@@ -15,25 +15,23 @@ import kotlin.test.assertNull
 import kotlin.time.Instant
 
 internal class GetPidDataFromKeyCloakTest {
+    val client: KeycloakClient = mock(KeycloakClient::class.java)
+    val minimalUser = UserRepresentation(
+        "tneal", "Neal", "Tyler", mapOf(
+            Pair("birthdate", listOf("1955-04-12"))
+        )
+    )
+    val function = GetPidDataFromKeyCloak(
+        keyCloakClient = client,
+        issuerCountry = IsoCountry("GR"),
+        issuingJurisdiction = "GR-I",
+        clock = Clock.fixed(Instant.parse("2026-01-01T12:39:44Z"), TimeZone.UTC)
+    )
+
     @Test
     internal fun `maps minimal data from Keycloak`() = runTest {
-        val client: KeycloakClient = mock(KeycloakClient::class.java)
-        given(client.getUserByUsername("user")).willReturn(
-            UserRepresentation(
-                "tneal", "Neal", "Tyler", mapOf(
-                    Pair("birthdate", listOf("1955-04-12"))
-                )
-            )
-        )
-
-        val (pid, _) = checkNotNull(
-            GetPidDataFromKeyCloak(
-                keyCloakClient = client,
-                issuerCountry = IsoCountry("GR"),
-                issuingJurisdiction = "GR-I",
-                clock = Clock.fixed(Instant.parse("2026-01-01T12:39:44Z"), TimeZone.UTC)
-            ).invoke("user")
-        )
+        given(client.getUserByUsername("user")).willReturn(minimalUser)
+        val (pid, _) = checkNotNull(function.invoke("user"))
 
         assertEquals(FamilyName("Neal"), pid.familyName)
         assertEquals(GivenName("Tyler"), pid.givenName)
@@ -58,12 +56,8 @@ internal class GetPidDataFromKeyCloakTest {
 
     @Test
     internal fun `maps all data from Keycloak`() = runTest {
-        val client: KeycloakClient = mock(KeycloakClient::class.java)
         given(client.getUserByUsername("user")).willReturn(
-            UserRepresentation(
-                username = "tneal",
-                lastName = "Neal",
-                firstName = "Tyler",
+            minimalUser.copy(
                 email = "tyler.neal@example.com",
                 attributes = mapOf(
                     Pair("birthdate", listOf("1955-04-12")),
@@ -85,14 +79,7 @@ internal class GetPidDataFromKeyCloakTest {
             )
         )
 
-        val (pid, _) = checkNotNull(
-            GetPidDataFromKeyCloak(
-                keyCloakClient = client,
-                issuerCountry = IsoCountry("GR"),
-                issuingJurisdiction = "GR-I",
-                clock = Clock.fixed(Instant.parse("2026-01-01T12:39:44Z"), TimeZone.UTC)
-            ).invoke("user")
-        )
+        val (pid, _) = checkNotNull(function.invoke("user"))
 
         assertEquals(FamilyName("Neal"), pid.familyName)
         assertEquals(GivenName("Tyler"), pid.givenName)
