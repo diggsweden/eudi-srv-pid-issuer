@@ -401,17 +401,19 @@ fun beans(clock: Clock) = BeanRegistrarDsl {
     registerBean {
         val keycloakProperties = bean<KeycloakConfigurationProperties>()
         GetPidDataFromKeyCloak(
+            SpringKeycloakClient(
+                webClient,
+                keyCloak = Url(keycloakProperties.serverUrl.toExternalForm()),
+                AdministrationClient(
+                    realm = Realm(keycloakProperties.authenticationRealm),
+                    client = Credentials(username = keycloakProperties.clientId, password = null),
+                    admin = Credentials(username = keycloakProperties.username, password = keycloakProperties.password),
+                ),
+                users = Realm(keycloakProperties.userRealm)
+            ),
             issuerCountry = env.getRequiredProperty("issuer.pid.issuingCountry").let(::IsoCountry),
             issuingJurisdiction = env.getProperty("issuer.pid.issuingJurisdiction"),
-            clock = clock,
-            webClient = bean(),
-            keyCloak = Url(keycloakProperties.serverUrl.toExternalForm()),
-            administrationClient = AdministrationClient(
-                realm = Realm(keycloakProperties.authenticationRealm),
-                client = Credentials(username = keycloakProperties.clientId, password = null),
-                admin = Credentials(username = keycloakProperties.username, password = keycloakProperties.password),
-            ),
-            users = Realm(keycloakProperties.userRealm),
+            clock = clock
         )
     }
     registerBean<EncodePidInCbor>(lazyInit = true) {
